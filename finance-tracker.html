@@ -306,13 +306,7 @@ const SEED_EXP=[
   {id:'s7',date:'2026-07-01',amt:250,cat:'Doctor/Clinic',pay:'Cash',card:'',store:'',note:''},
   {id:'s8',date:'2026-07-02',amt:58,cat:'Breakfast',pay:'Cash',card:'',store:'',note:''}
 ];
-const SEED_FIX=[
-  {id:'df1',name:'Motorcycle loan',amount:6167,bank:'Cooperative Bank',bucket:'needs',duedate:'until Jan 2027'},
-  {id:'df2',name:'TutorABC',amount:2000,bank:'SinoPac',bucket:'wants',duedate:'until Nov 2026'},
-  {id:'df3',name:'Claude',amount:690,bank:'CTBC',bucket:'wants',duedate:''},
-  {id:'df4',name:'iCloud+',amount:300,bank:'CTBC',bucket:'wants',duedate:''},
-  {id:'df5',name:'Rethink sponsorship',amount:350,bank:'Cathay',bucket:'wants',duedate:''}
-];
+const SEED_FIX=[];
 
 function gl(k){try{return JSON.parse(localStorage.getItem(k));}catch(e){return null;}}
 function sl(k,v){localStorage.setItem(k,JSON.stringify(v));}

@@ -54,6 +54,7 @@
   .cal-num { font-size: 10px; color: var(--text-muted); }
   .cal-exp { font-size: 9px; color: var(--danger); font-weight: 500; }
   .cal-inc { font-size: 9px; color: var(--success); font-weight: 500; }
+  .cal-day.selected { border-color: var(--accent); background: #e8f0fb; }
   .chart-wrap { position: relative; width: 100%; }
   .filter-btns { display: flex; gap: 8px; margin-bottom: 1rem; }
   .filter-btns button { flex: 1; }
@@ -188,6 +189,7 @@
       <span><span class="legend-dot" style="background:#1baf7a;border-radius:50%"></span>Income</span>
     </div>
     <div class="calendar" id="cal-grid"></div>
+    <div id="day-detail" style="display:none;background:var(--surface-1);border-radius:var(--radius);padding:1rem;margin-bottom:1.5rem;"></div>
     <div class="stat-cards mb8">
       <div class="card"><p style="font-size:12px;color:var(--text-secondary);margin-bottom:4px">Income</p><p id="st-inc" style="font-size:20px;font-weight:500">$0</p></div>
       <div class="card"><p style="font-size:12px;color:var(--text-secondary);margin-bottom:4px">Expenses</p><p id="st-exp" style="font-size:20px;font-weight:500">$0</p></div>
@@ -432,8 +434,33 @@ function renderCalendar(y,m,en,mi){
   const days=new Date(y,m+1,0).getDate(),first=new Date(y,m,1).getDay();
   let h=['Su','Mo','Tu','We','Th','Fr','Sa'].map(d=>`<div class="cal-head">${d}</div>`).join('');
   for(let i=0;i<first;i++) h+='<div></div>';
-  for(let d=1;d<=days;d++) h+=`<div class="cal-day"><div class="cal-num">${d}</div>${de[d]?`<div class="cal-exp">-${fmts(de[d])}</div>`:''}${di[d]?`<div class="cal-inc">+${fmts(di[d])}</div>`:''}</div>`;
+  for(let d=1;d<=days;d++) h+=`<div class="cal-day" data-day="${d}" style="cursor:pointer""><div class="cal-num">${d}</div>${de[d]?`<div class="cal-exp">-${fmt(de[d])}</div>`:''}${di[d]?`<div class="cal-inc">+${fmt(di[d])}</div>`:''}</div>`;
   document.getElementById('cal-grid').innerHTML=h;
+  document.getElementById('day-detail').style.display='none';
+  document.querySelectorAll('.cal-day[data-day]').forEach(cell=>{
+    cell.onclick=()=>{
+      const d=+cell.dataset.day;
+      const dateStr=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+      const dayExp=en.filter(e=>e.date===dateStr);
+      const dayInc=mi.filter(e=>e.date===dateStr);
+      if(!dayExp.length&&!dayInc.length) return;
+      const panel=document.getElementById('day-detail');
+      const prevActive=document.querySelector('.cal-day.selected');
+      if(prevActive) prevActive.classList.remove('selected');
+      if(panel.dataset.date===dateStr&&panel.style.display!=='none'){panel.style.display='none';panel.dataset.date='';return;}
+      cell.classList.add('selected');
+      panel.dataset.date=dateStr;
+      let html=`<p style="font-size:13px;font-weight:500;margin-bottom:8px">${dateStr}</p>`;
+      if(dayExp.length){
+        html+=dayExp.map(e=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:13px"><div><span style="color:var(--danger);font-weight:500">Expense</span> <span style="margin-left:4px">${e.cat}</span>${e.note?`<span class="row-meta">${e.note}</span>`:''}</div><span>${fmt(e.amt)}</span></div>`).join('');
+      }
+      if(dayInc.length){
+        html+=dayInc.map(e=>{const lbl=e.type==='Full-time'?'Full-time salary':e.type==='Part-time'?'Part-time':'Other income';return `<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:13px"><div><span style="color:var(--success);font-weight:500">Income</span> <span style="margin-left:4px">${lbl}</span></div><span>${fmt(e.amt)}</span></div>`;}).join('');
+      }
+      panel.innerHTML=html;
+      panel.style.display='block';
+    };
+  });
 }
 
 function renderOverview(){

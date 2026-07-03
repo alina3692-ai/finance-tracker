@@ -296,7 +296,7 @@ const WANTS=['In-person course','Online course','Books/Materials','Subscriptions
 const CAT_CLR={Breakfast:'#2a78d6',Lunch:'#1baf7a',Dinner:'#eda100','Snacks & Drinks':'#4a3aa7','Dining out':'#e34948',Delivery:'#eb6834','Daily supplies':'#9085e9',Skincare:'#e87ba4',Gas:'#52514e',Parking:'#898781','Public transport':'#199e70','Taxi/Uber':'#3d9bd4','Loan payment':'#b5622e','Doctor/Clinic':'#d95926',Medicine:'#c84b9e',Pets:'#7bc67a',Gifts:'#f0a500','Red envelopes':'#e34040',Other:'#aaa','In-person course':'#2a78d6','Online course':'#4a3aa7','Books/Materials':'#199e70',Subscriptions:'#52514e',Tickets:'#e34948','Movies/Concerts':'#d95926',Gaming:'#eb6834',Magazines:'#eda100',Clothing:'#e87ba4','Planned purchase':'#9085e9','Impulse purchase':'#c84b9e',Flights:'#1baf7a',Accommodation:'#3d9bd4',Activities:'#7bc67a','Travel dining':'#b5622e',Souvenirs:'#f0a500',Sponsorship:'#898781',Investing:'#2a9d8f','Fixed deductions':'#52514e'};
 const CARD_CLR={'CTBC Hero':'#e34948','Cathay CUBE':'#d95926','SinoPac DAWHO':'#9085e9',Cash:'#2a78d6','Line Pay Transfer':'#1baf7a',Coupon:'#eda100'};
 const PAY_TO_CARD={'Line Pay':'CTBC Hero','Apple Pay':'Cathay CUBE'};
-const ACCS=[{id:'ctbc',name:'CTBC',label:'Credit card payment account'},{id:'coop',name:'Cooperative Bank',label:'Salary account'},{id:'cathay',name:'Cathay',label:'Credit card payment account'},{id:'mega',name:'Mega Bank',label:'Emergency fund'},{id:'sinopac',name:'SinoPac',label:'Travel fund'}];
+const ACCS=[{id:'ctbc',name:'CTBC',label:'Credit card payment account'},{id:'coop',name:'Cooperative Bank',label:'Salary account'},{id:'cathay',name:'Cathay',label:'Credit card payment account'},{id:'mega',name:'Mega Bank',label:'Emergency fund'},{id:'sinopac',name:'SinoPac',label:'Travel fund'},{id:'richart',name:'Richart (Taishin)',label:'Savings & Investing'}];
 const EMG=80000;
 const SEED_EXP=[
   {id:'s1',date:'2026-07-01',amt:30,cat:'Snacks & Drinks',pay:'Cash',card:'',store:'',note:'Fin drink'},
@@ -468,15 +468,15 @@ function renderOverview(){
   document.getElementById('month-label').textContent=vm.toLocaleString('en-US',{month:'long',year:'numeric'});
   const en=exp.filter(e=>{const d=new Date(e.date+'T00:00:00');return d.getFullYear()===y&&d.getMonth()===m;});
   const mi=inc.filter(e=>{const d=new Date(e.date+'T00:00:00');return d.getFullYear()===y&&d.getMonth()===m;});
-  const et=en.reduce((s,e)=>s+e.amt,0),it=mi.reduce((s,e)=>s+e.amt,0),ft=fix.reduce((s,x)=>s+x.amount,0),inv=en.filter(e=>e.cat==='Investing').reduce((s,e)=>s+e.amt,0);
+  const et=en.reduce((s,e)=>s+e.amt,0),it=mi.reduce((s,e)=>s+e.amt,0),inv=en.filter(e=>e.cat==='Investing').reduce((s,e)=>s+e.amt,0);
   document.getElementById('st-inc').textContent=fmt(it);
-  document.getElementById('st-exp').textContent=fmt(et+ft);
-  document.getElementById('st-bal').textContent=fmt(it-et-ft);
+  document.getElementById('st-exp').textContent=fmt(et);
+  document.getElementById('st-bal').textContent=fmt(it-et);
   document.getElementById('st-inv').textContent=fmt(inv);
   renderCalendar(y,m,en,mi);
   const fti=mi.filter(e=>e.type==='Full-time').reduce((s,e)=>s+e.amt,0);
-  const na=en.filter(e=>NEEDS.includes(e.cat)).reduce((s,e)=>s+e.amt,0)+fix.filter(x=>x.bucket==='needs').reduce((s,x)=>s+x.amount,0);
-  const wa=en.filter(e=>WANTS.includes(e.cat)).reduce((s,e)=>s+e.amt,0)+fix.filter(x=>x.bucket==='wants').reduce((s,x)=>s+x.amount,0);
+  const na=en.filter(e=>NEEDS.includes(e.cat)).reduce((s,e)=>s+e.amt,0);
+  const wa=en.filter(e=>WANTS.includes(e.cat)).reduce((s,e)=>s+e.amt,0);
   const mbv=latestBal('mega')?latestBal('mega').amount:0,sbv=latestBal('sinopac')?latestBal('sinopac').amount:0;
   if(fti>0){
     const bars=[{l:'Needs (50%)',a:na,t:fti*0.5,c:'#2a78d6'},{l:'Wants (20%)',a:wa,t:fti*0.2,c:'#eda100'}];
@@ -494,8 +494,7 @@ function renderOverview(){
   chT=new Chart(document.getElementById('trend-chart'),{type:'bar',data:{labels:mns,datasets:[{label:'Income',data:id,backgroundColor:'#1baf7a',borderRadius:4},{label:'Expenses',data:ed,backgroundColor:'#e34948',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'top',labels:{boxWidth:10,font:{size:11}}},tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+fmt(ctx.parsed.y)}}},scales:{y:{ticks:{callback:v=>'$'+v},grid:{color:'#e1e0d9'}},x:{grid:{display:false}}}}});
   const ct={};
   en.filter(e=>e.cat!=='Investing').forEach(e=>{ct[e.cat]=(ct[e.cat]||0)+e.amt;});
-  const ftt=fix.reduce((s,x)=>s+x.amount,0);if(ftt>0)ct['Fixed deductions']=ftt;
-  const cats=Object.keys(ct),tot=en.filter(e=>e.cat!=='Investing').reduce((s,e)=>s+e.amt,0)+ftt;
+  const cats=Object.keys(ct),tot=en.filter(e=>e.cat!=='Investing').reduce((s,e)=>s+e.amt,0);
   document.getElementById('cat-legend').innerHTML=cats.map(c=>{const p=tot>0?Math.round(ct[c]/tot*100):0;return `<span><span class="legend-dot" style="background:${CAT_CLR[c]||'#888'}"></span>${c} ${p}%</span>`;}).join('');
   if(chC)chC.destroy();
   chC=new Chart(document.getElementById('cat-chart'),{type:'doughnut',data:{labels:cats,datasets:[{data:cats.map(c=>ct[c]),backgroundColor:cats.map(c=>CAT_CLR[c]||'#888'),borderColor:'#fafaf9',borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.label+': '+fmt(ctx.parsed)}}}}});

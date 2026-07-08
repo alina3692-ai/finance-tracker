@@ -80,6 +80,7 @@
     <button class="tab" data-tab="overview">Overview</button>
     <button class="tab" data-tab="accounts">Accounts</button>
     <button class="tab" data-tab="records">All records</button>
+    <button class="tab" data-tab="wishlist">Wishlist</button>
   </div>
 
   <!-- ADD ENTRY -->
@@ -277,6 +278,27 @@
     <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px">Tap any row to edit — submit to replace</p>
     <div id="rec-list"></div>
   </div>
+  <!-- WISHLIST -->
+  <div id="panel-wishlist" class="panel">
+    <p class="section-title">Wishlist <span style="font-size:11px;font-weight:400;color:var(--text-muted)">— 21-day cooling-off rule</span></p>
+    <p class="section-sub">Items turn green after 21 days. Compare prices before buying.</p>
+
+    <div class="card mb16">
+      <div class="grid2 mb8">
+        <div><label>Date added</label><input type="date" id="wl-date"></div>
+        <div><label>Item</label><input type="text" id="wl-item" placeholder="e.g. AirPods Pro"></div>
+      </div>
+      <div class="grid2 mb8">
+        <div><label>Category</label><select id="wl-cat"><option value="needs">Needs</option><option value="wants">Wants</option></select></div>
+        <div><label>Quoted price</label><input type="number" id="wl-price" placeholder="0"></div>
+      </div>
+      <div class="mb8"><label>Reason</label><input type="text" id="wl-reason" placeholder="Why do you want this?"></div>
+      <button class="primary" id="wl-submit" style="width:100%;font-size:13px">Add to wishlist</button>
+    </div>
+
+    <div id="wl-list"></div>
+  </div>
+
   <!-- BACKUP BAR (bottom) -->
   <div class="backup-bar" style="margin-top:2rem;margin-bottom:0">
     <span class="backup-bar-label"><i class="ti ti-database"></i> Data is stored in your browser — back up regularly</span>
@@ -368,6 +390,7 @@ function goto(t){
   if(t==='overview') renderOverview();
   if(t==='accounts'){renderAccounts();renderBills();}
   if(t==='records') renderRecords();
+  if(t==='wishlist') renderWishlist();
 }
 
 document.getElementById('exp-category').onchange=()=>{document.getElementById('store-field').style.display=FOOD.includes(document.getElementById('exp-category').value)?'block':'none';};
@@ -575,6 +598,98 @@ function renderRecords(){
 }
 
 renderFixList();
+
+// Wishlist
+let wl=gl('ft_wl')||[];
+
+// init date
+document.getElementById('wl-date').value=new Date().toISOString().slice(0,10);
+
+document.getElementById('wl-submit').onclick=()=>{
+  const date=document.getElementById('wl-date').value,item=document.getElementById('wl-item').value,cat=document.getElementById('wl-cat').value,price=+document.getElementById('wl-price').value,reason=document.getElementById('wl-reason').value;
+  if(!date||!item){return;}
+  wl.push({id:Date.now().toString(),date,item,cat,price,reason,compared:false,bought:false,buyPrice:'',note:''});
+  sl('ft_wl',wl);
+  document.getElementById('wl-item').value='';document.getElementById('wl-price').value='';document.getElementById('wl-reason').value='';
+  renderWishlist();
+};
+
+function renderWishlist(){
+  const el=document.getElementById('wl-list');
+  if(!wl.length){el.innerHTML='<p style="color:var(--text-muted)">No items yet — add something you\'re considering buying</p>';return;}
+  const today=new Date();
+  const sorted=wl.slice().sort((a,b)=>a.bought-b.bought||a.date.localeCompare(b.date));
+  el.innerHTML=`<div style="overflow-x:auto;">
+  <table style="width:100%;border-collapse:collapse;font-size:12px;">
+    <thead>
+      <tr style="border-bottom:2px solid var(--border);text-align:left;">
+        <th style="padding:8px 6px;color:var(--text-secondary);font-weight:500;white-space:nowrap">Date</th>
+        <th style="padding:8px 6px;color:var(--text-secondary);font-weight:500">Item</th>
+        <th style="padding:8px 6px;color:var(--text-secondary);font-weight:500">Cat.</th>
+        <th style="padding:8px 6px;color:var(--text-secondary);font-weight:500;white-space:nowrap">Quoted $</th>
+        <th style="padding:8px 6px;color:var(--text-secondary);font-weight:500">Reason</th>
+        <th style="padding:8px 6px;color:var(--text-secondary);font-weight:500;white-space:nowrap">Days</th>
+        <th style="padding:8px 6px;color:var(--text-secondary);font-weight:500;text-align:center">Compared</th>
+        <th style="padding:8px 6px;color:var(--text-secondary);font-weight:500;text-align:center">Bought</th>
+        <th style="padding:8px 6px;color:var(--text-secondary);font-weight:500;white-space:nowrap">Buy $</th>
+        <th style="padding:8px 6px;color:var(--text-secondary);font-weight:500">Note</th>
+        <th style="padding:8px 6px;"></th>
+      </tr>
+    </thead>
+    <tbody>
+    ${sorted.map(w=>{
+      const days=Math.floor((today-new Date(w.date+'T00:00:00'))/(1000*60*60*24));
+      const coolOk=days>=21;
+      const rowStyle=w.bought?'opacity:0.4;':'';
+      return `<tr style="${rowStyle}border-bottom:1px solid var(--border);">
+        <td style="padding:8px 6px;white-space:nowrap">${w.date}</td>
+        <td style="padding:8px 6px;font-weight:500;min-width:80px">${w.item}</td>
+        <td style="padding:8px 6px"><span class="${w.cat==='needs'?'tag-needs':'tag-wants'}">${w.cat==='needs'?'Need':'Want'}</span></td>
+        <td style="padding:8px 6px;white-space:nowrap">${w.price?fmt(w.price):'—'}</td>
+        <td style="padding:8px 6px;color:var(--text-secondary);min-width:80px">${w.reason||'—'}</td>
+        <td style="padding:8px 6px;font-weight:600;color:${coolOk?'var(--success)':'var(--danger)'};white-space:nowrap">${days}d ${coolOk?'✓':''}</td>
+        <td style="padding:8px 6px;text-align:center"><input type="checkbox" class="wl-compared" data-id="${w.id}" ${w.compared?'checked':''} style="width:auto;cursor:pointer"></td>
+        <td style="padding:8px 6px;text-align:center"><input type="checkbox" class="wl-bought" data-id="${w.id}" ${w.bought?'checked':''} style="width:auto;cursor:pointer"></td>
+        <td style="padding:8px 6px"><input type="number" class="wl-buyprice" data-id="${w.id}" value="${w.buyPrice||''}" placeholder="—" style="width:70px;padding:3px 6px;font-size:12px"></td>
+        <td style="padding:8px 6px"><input type="text" class="wl-note" data-id="${w.id}" value="${w.note||''}" placeholder="—" style="min-width:80px;padding:3px 6px;font-size:12px"></td>
+        <td style="padding:8px 6px"><button class="btn-icon dwl" data-id="${w.id}"><i class="ti ti-x" style="font-size:12px"></i></button></td>
+      </tr>`;
+    }).join('')}
+    </tbody>
+  </table></div>`;
+
+  el.querySelectorAll('.dwl').forEach(b=>b.onclick=()=>{if(confirm('Remove this item?')){wl=wl.filter(x=>x.id!==b.dataset.id);sl('ft_wl',wl);renderWishlist();}});
+  el.querySelectorAll('.wl-compared').forEach(cb=>cb.onchange=()=>{const w=wl.find(x=>x.id===cb.dataset.id);if(w){w.compared=cb.checked;sl('ft_wl',wl);}});
+  el.querySelectorAll('.wl-bought').forEach(cb=>cb.onchange=()=>{const w=wl.find(x=>x.id===cb.dataset.id);if(w){w.bought=cb.checked;sl('ft_wl',wl);renderWishlist();}});
+  el.querySelectorAll('.wl-buyprice').forEach(inp=>inp.onchange=()=>{const w=wl.find(x=>x.id===inp.dataset.id);if(w){w.buyPrice=+inp.value;sl('ft_wl',wl);}});
+  el.querySelectorAll('.wl-note').forEach(inp=>inp.onchange=()=>{const w=wl.find(x=>x.id===inp.dataset.id);if(w){w.note=inp.value;sl('ft_wl',wl);}});
+}
+
+// Also include wl in export/import
+const origExport=document.getElementById('btn-export').onclick;
+document.getElementById('btn-export').onclick=()=>{
+  const data={exp,inc,fix,snaps,bills,wl,exported:new Date().toISOString()};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');
+  a.href=url;a.download='finance-backup-'+new Date().toISOString().slice(0,10)+'.json';a.click();URL.revokeObjectURL(url);
+};
+document.getElementById('btn-import').onchange=e=>{
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const data=JSON.parse(ev.target.result);
+      if(!data.exp||!data.inc||!data.fix){alert('Invalid backup file');return;}
+      if(!confirm('This will replace all current data with the backup. Continue?'))return;
+      exp=data.exp;inc=data.inc;fix=data.fix;snaps=data.snaps||[];bills=data.bills||[];wl=data.wl||[];
+      sl('ft_exp',exp);sl('ft_inc',inc);sl('ft_fix',fix);sl('ft_snaps',snaps);sl('ft_bills',bills);sl('ft_wl',wl);
+      renderFixList();renderWishlist();
+      alert('Import successful! Data restored from '+data.exported.slice(0,10));
+    }catch(err){alert('Failed to read file.');}
+  };
+  reader.readAsText(file);e.target.value='';
+};
+
 })();
 </script>
 </body>

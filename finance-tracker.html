@@ -619,21 +619,21 @@ function renderWishlist(){
   if(!wl.length){el.innerHTML='<p style="color:var(--text-muted)">No items yet — add something you\'re considering buying</p>';return;}
   const today=new Date();
   const sorted=wl.slice().sort((a,b)=>a.bought-b.bought||a.date.localeCompare(b.date));
-  el.innerHTML=`<div style="overflow-x:auto;">
-  <table style="width:100%;border-collapse:collapse;font-size:12px;">
+  el.innerHTML=`<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+  <table style="width:100%;min-width:900px;border-collapse:collapse;font-size:12px;">
     <thead>
       <tr style="border-bottom:2px solid var(--border);text-align:left;">
-        <th style="padding:8px 6px;color:var(--text-secondary);font-weight:500;white-space:nowrap">Date</th>
-        <th style="padding:8px 6px;color:var(--text-secondary);font-weight:500">Item</th>
-        <th style="padding:8px 6px;color:var(--text-secondary);font-weight:500">Cat.</th>
-        <th style="padding:8px 6px;color:var(--text-secondary);font-weight:500;white-space:nowrap">Quoted $</th>
-        <th style="padding:8px 6px;color:var(--text-secondary);font-weight:500">Reason</th>
-        <th style="padding:8px 6px;color:var(--text-secondary);font-weight:500;white-space:nowrap">Days</th>
-        <th style="padding:8px 6px;color:var(--text-secondary);font-weight:500;text-align:center">Compared</th>
-        <th style="padding:8px 6px;color:var(--text-secondary);font-weight:500;text-align:center">Bought</th>
-        <th style="padding:8px 6px;color:var(--text-secondary);font-weight:500;white-space:nowrap">Buy $</th>
-        <th style="padding:8px 6px;color:var(--text-secondary);font-weight:500">Note</th>
-        <th style="padding:8px 6px;"></th>
+        <th style="padding:8px 10px;color:var(--text-secondary);font-weight:500;min-width:100px">Date</th>
+        <th style="padding:8px 10px;color:var(--text-secondary);font-weight:500;min-width:100px">Item</th>
+        <th style="padding:8px 10px;color:var(--text-secondary);font-weight:500;min-width:60px">Cat.</th>
+        <th style="padding:8px 10px;color:var(--text-secondary);font-weight:500;min-width:80px">Quoted $</th>
+        <th style="padding:8px 10px;color:var(--text-secondary);font-weight:500;min-width:120px">Reason</th>
+        <th style="padding:8px 10px;color:var(--text-secondary);font-weight:500;min-width:60px">Days</th>
+        <th style="padding:8px 10px;color:var(--text-secondary);font-weight:500;text-align:center;min-width:75px">Compared</th>
+        <th style="padding:8px 10px;color:var(--text-secondary);font-weight:500;text-align:center;min-width:65px">Bought</th>
+        <th style="padding:8px 10px;color:var(--text-secondary);font-weight:500;min-width:90px">Buy $</th>
+        <th style="padding:8px 10px;color:var(--text-secondary);font-weight:500;min-width:120px">Note</th>
+        <th style="padding:8px 10px;min-width:30px"></th>
       </tr>
     </thead>
     <tbody>
@@ -642,17 +642,17 @@ function renderWishlist(){
       const coolOk=days>=21;
       const rowStyle=w.bought?'opacity:0.4;':'';
       return `<tr style="${rowStyle}border-bottom:1px solid var(--border);">
-        <td style="padding:8px 6px;white-space:nowrap">${w.date}</td>
-        <td style="padding:8px 6px;font-weight:500;min-width:80px">${w.item}</td>
-        <td style="padding:8px 6px"><span class="${w.cat==='needs'?'tag-needs':'tag-wants'}">${w.cat==='needs'?'Need':'Want'}</span></td>
-        <td style="padding:8px 6px;white-space:nowrap">${w.price?fmt(w.price):'—'}</td>
-        <td style="padding:8px 6px;color:var(--text-secondary);min-width:80px">${w.reason||'—'}</td>
-        <td style="padding:8px 6px;font-weight:600;color:${coolOk?'var(--success)':'var(--danger)'};white-space:nowrap">${days}d ${coolOk?'✓':''}</td>
-        <td style="padding:8px 6px;text-align:center"><input type="checkbox" class="wl-compared" data-id="${w.id}" ${w.compared?'checked':''} style="width:auto;cursor:pointer"></td>
-        <td style="padding:8px 6px;text-align:center"><input type="checkbox" class="wl-bought" data-id="${w.id}" ${w.bought?'checked':''} style="width:auto;cursor:pointer"></td>
-        <td style="padding:8px 6px"><input type="number" class="wl-buyprice" data-id="${w.id}" value="${w.buyPrice||''}" placeholder="—" style="width:70px;padding:3px 6px;font-size:12px"></td>
-        <td style="padding:8px 6px"><input type="text" class="wl-note" data-id="${w.id}" value="${w.note||''}" placeholder="—" style="min-width:80px;padding:3px 6px;font-size:12px"></td>
-        <td style="padding:8px 6px"><button class="btn-icon dwl" data-id="${w.id}"><i class="ti ti-x" style="font-size:12px"></i></button></td>
+        <td style="padding:8px 10px;white-space:nowrap">${w.date}</td>
+        <td style="padding:8px 10px;font-weight:500">${w.item}</td>
+        <td style="padding:8px 10px"><span class="${w.cat==='needs'?'tag-needs':'tag-wants'}">${w.cat==='needs'?'Need':'Want'}</span></td>
+        <td style="padding:8px 10px;white-space:nowrap">${w.price?fmt(w.price):'—'}</td>
+        <td style="padding:8px 10px;color:var(--text-secondary)">${w.reason||'—'}</td>
+        <td style="padding:8px 10px;font-weight:600;color:${coolOk?'var(--success)':'var(--danger)'};white-space:nowrap">${days}d ${coolOk?'✓':''}</td>
+        <td style="padding:8px 10px;text-align:center"><input type="checkbox" class="wl-compared" data-id="${w.id}" ${w.compared?'checked':''} style="width:auto;cursor:pointer;width:16px;height:16px"></td>
+        <td style="padding:8px 10px;text-align:center"><input type="checkbox" class="wl-bought" data-id="${w.id}" ${w.bought?'checked':''} style="width:auto;cursor:pointer;width:16px;height:16px"></td>
+        <td style="padding:8px 10px"><input type="number" class="wl-buyprice" data-id="${w.id}" value="${w.buyPrice||''}" placeholder="—" style="width:80px;padding:4px 6px;font-size:12px"></td>
+        <td style="padding:8px 10px"><input type="text" class="wl-note" data-id="${w.id}" value="${w.note||''}" placeholder="—" style="width:110px;padding:4px 6px;font-size:12px"></td>
+        <td style="padding:8px 10px"><button class="btn-icon dwl" data-id="${w.id}"><i class="ti ti-x" style="font-size:12px"></i></button></td>
       </tr>`;
     }).join('')}
     </tbody>
